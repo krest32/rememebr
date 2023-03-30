@@ -1,0 +1,10 @@
+server:
+  port: 8002
+remember:
+  serverId: 2
+  serverList:
+    - {id: 1, ip: localhost, port: 8001}
+    - {id: 2, ip: localhost, port: 8002}
+    - {id: 3, ip: localhost, port: 8003}
+    - {id: 4, ip: localhost, port: 8004}
+    - {id: 5, ip: localhost, port: 8005}
