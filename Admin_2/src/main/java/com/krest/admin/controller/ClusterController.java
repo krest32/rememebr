@@ -113,10 +113,20 @@ public class ClusterController {
     @PostMapping({"leader/sync/clusterInfo"})
     public String syncClusterInfo(@RequestBody ClusterParam param) {
         // 如果出现2个leader，那么选票更高的成为新的leader
-        if (ClusterInfo.status == 1 && ClusterInfo.tickets > param.getTickets()) {
+        if (ClusterInfo.status == 1 && ClusterInfo.tickets >= param.getTickets()) {
             log.info("拒绝接收其他Leader同步数据，leader:" + param.getLeader());
             return ReturnMsg.ERRORMSG.getMsg();
         }
+
+        // 如果出现两个Leader, 选票相同, nodeId > 当前node id
+        if (ClusterInfo.status == 1
+                && ClusterInfo.tickets.equals(param.getTickets())
+                && param.getCurrentNode().getId() > ClusterInfo.currentNode.getId()) {
+            log.info("拒绝接收其他Leader同步数据，leader:" + param.getLeader());
+            return ReturnMsg.ERRORMSG.getMsg();
+        }
+
+
         if (ClusterInfo.leader != null && ClusterInfo.leader.getId() != param.getLeader().getId()) {
             log.info("开始变更 leader 信息: " + ClusterInfo.leader.getId() + " -> " + param.getLeader().getId());
         }
@@ -128,6 +138,7 @@ public class ClusterController {
         ClusterInfo.resetExpireTime();
 
         log.info("开始接收Leader同步数据，leader:" + param.getLeader());
+        // 然后重新向 Leader 节点注册
         return ReturnMsg.OKMSG.getMsg();
     }
 }
