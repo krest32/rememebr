@@ -1,14 +1,17 @@
 package com.krest.admin.schedule;
 
+import com.alibaba.fastjson.JSONObject;
 import com.krest.admin.cache.ClusterInfo;
 import com.krest.admin.entity.*;
 import com.krest.admin.utils.HttpUtil;
 import com.krest.admin.utils.RaftSelector;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.catalina.Cluster;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import javax.swing.*;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -21,6 +24,8 @@ import java.util.concurrent.CopyOnWriteArraySet;
 @Slf4j
 @Component
 public class ScheduleJob {
+    Random random = new Random();
+
 
     /**
      * 定时任务: 先进行启动数据校验
@@ -58,6 +63,8 @@ public class ScheduleJob {
     private void doCandidateJob() throws Exception {
         ClusterInfo.status = 3;
         ClusterInfo.leader = null;
+
+
         // 集群启动后，开始查找 Leader 信息，如果集群内所有的 Leader 都保存一直，那么就像向 Leader 同步数据
         List<ClusterParam> clusterParams = new ArrayList<>();
         for (Node node : ClusterInfo.configFollowers) {
@@ -88,11 +95,17 @@ public class ScheduleJob {
             }
 
             if (leaderId == 0) {
+
                 if (ClusterInfo.term == 0) {
                     ClusterInfo.term += 1;
                 }
+                log.warn("集群内，Leader信息不一致, 开始重新选举");
+
+                // 设置随机时间的定时器
+                Integer randomInt = random.nextInt(15);
+                log.info("等待" + randomInt + " s,进入选举工作流程");
+                Thread.sleep(randomInt * 1000);
                 RaftSelector.selectLeader(ClusterInfo.term);
-                throw new Exception("集群内，Leader信息不一致");
             } else {
                 // 校验通过，开始保存同步 Cluster 信息, 同时更新自己的状态为 follower
                 ClusterInfo.leader = clusterParams.get(0).getLeader();

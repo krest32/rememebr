@@ -13,8 +13,10 @@ import java.util.Set;
  */
 @Data
 public class ClusterParam {
+    
     Node leader;
     Integer term;
+    Integer tickets;
     Integer status;
     Node currentNode;
     Set<Node> aliveFollowers;
@@ -25,7 +27,10 @@ public class ClusterParam {
         this.aliveFollowers = ClusterInfo.aliveFollowers;
         this.status = ClusterInfo.status;
         this.currentNode = ClusterInfo.currentNode;
+        this.tickets = ClusterInfo.tickets;
     }
+
+
 
     public Boolean compareLeader(Node node) {
         if (this.leader == null || this.leader.getId() == null) {

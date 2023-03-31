@@ -73,7 +73,7 @@ public class RaftSelector {
         for (Node node : ClusterInfo.aliveFollowers) {
             if (!node.getId().equals(ClusterInfo.currentNode.getId())) {
                 String voteTicket = getVoteTicket(node, AddressEnum.VOTEADDR.getAddr(), voteParam);
-                log.info(" 发送请求投票信息 : " + voteParam);
+                log.info("发送请求投票信息 : " + voteParam);
                 log.info(node + " 投票结果 : " + voteTicket);
                 // 如果投票通过，那么就票数加 1
                 if (voteTicket.equals(ReturnMsg.OKMSG.getMsg())) {
@@ -84,6 +84,7 @@ public class RaftSelector {
 
         // 统计获得的选票，如果大于等于一半，那么就成为新的Leader，否则重新进入到选举
         log.info("当前获得选票数：" + ticket + " 当前存活节点个数：" + ClusterInfo.aliveFollowers.size());
+        ClusterInfo.tickets = ticket;
         if (ticket > ClusterInfo.aliveFollowers.size() / 2) {
             log.info("成功被推荐为Leader");
             ClusterInfo.leader = ClusterInfo.currentNode;
@@ -99,13 +100,15 @@ public class RaftSelector {
     }
 
     public static void publishEvent() {
-        log.info("Leader 开始广播事件");
-        for (Node node : ClusterInfo.aliveFollowers) {
-            if (!node.getId().equals(ClusterInfo.currentNode.getId())) {
-                log.info(node.toString());
-                String addr = "http://" + node.getIp() + ":" + node.getPort() + AddressEnum.SYNCCLUSTERINFO.getAddr();
-                OkRequest okRequest = new OkRequest(addr, new ClusterParam());
-                HttpUtil.sendPostRequest(okRequest);
+        if (ClusterInfo.status == 1) {
+            log.info("Leader 开始广播事件");
+            for (Node node : ClusterInfo.aliveFollowers) {
+                if (!node.getId().equals(ClusterInfo.currentNode.getId())) {
+                    log.info("向 " + node.toString() + "推送信息");
+                    String addr = "http://" + node.getIp() + ":" + node.getPort() + AddressEnum.SYNCCLUSTERINFO.getAddr();
+                    OkRequest okRequest = new OkRequest(addr, new ClusterParam());
+                    HttpUtil.sendPostRequest(okRequest);
+                }
             }
         }
     }

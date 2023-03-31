@@ -41,7 +41,7 @@ public class ClusterInfo {
     public static Integer status = 3;
 
     /**
-     * Leader 选举选票
+     * 代表当前 leader 在本届任期内的选票数量
      */
     public static Integer tickets = 0;
     /**
