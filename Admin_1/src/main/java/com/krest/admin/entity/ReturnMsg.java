@@ -16,7 +16,7 @@ public enum ReturnMsg {
     OKMSG("ok"),
     ERRORMSG("error"),
     CANDIDATE("candidate");
-    private String msg;
 
+    private String msg;
 
 }
